@@ -287,6 +287,10 @@ try using libusb to connect to boards without a serial driver attached"""
         "--pyserial",
         action="store_true",
         help="use pyserial to connect to boards")
+    parser.add_argument(
+        "--atb",
+        action="store_true",
+        help="Small hack for the AT25SF081B variant")
 
     args = parser.parse_args()
     if args.version:
@@ -302,6 +306,8 @@ try using libusb to connect to boards without a serial driver attached"""
 
     tinyprog.use_libusb = args.libusb
     tinyprog.use_pyserial = args.pyserial
+    
+    tinyprog.use_AT25S_B_variant = args.atb
 
     try:
         active_boards = get_ports(device) + get_ports("1209:2100")

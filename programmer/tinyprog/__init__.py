@@ -31,6 +31,7 @@ except (ImportError, ValueError):
 
 use_libusb = False
 use_pyserial = False
+use_AT25S_B_variant = False
 
 
 def pretty_hex(data):
@@ -317,7 +318,10 @@ class TinyProg(object):
 
         else:
             # Adesto
-            self.security_page_bit_offset = 0
+            if use_AT25S_B_variant:
+                self.security_page_bit_offset = 4
+            else:
+                self.security_page_bit_offset = 0
             self.security_page_write_cmd = 0x42
             self.security_page_read_cmd = 0x48
             self.security_page_erase_cmd = 0x44
