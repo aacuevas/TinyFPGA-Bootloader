@@ -298,6 +298,7 @@ class TinyMeta(object):
 
 class TinyProg(object):
     def __init__(self, ser, progress=None):
+        global use_AT25S_B_variant
         self.ser = ser
 
         if progress is None:
@@ -309,14 +310,8 @@ class TinyProg(object):
         flash_id = self.read_id()
         flash_id = [to_int(b) for b in flash_id]
         # temporary hack, should have better database as well as SFPD reading
-        if flash_id[0:2] == [0x9D, 0x60]:
-            # ISSI
-            self.security_page_bit_offset = 4
-            self.security_page_write_cmd = 0x62
-            self.security_page_read_cmd = 0x68
-            self.security_page_erase_cmd = 0x64
-
-        else:
+        adesto_flash = True if flash_id[0:2] != [0x9D, 0x60] else False
+        if adesto_flash:
             # Adesto
             if use_AT25S_B_variant:
                 self.security_page_bit_offset = 4
@@ -325,8 +320,20 @@ class TinyProg(object):
             self.security_page_write_cmd = 0x42
             self.security_page_read_cmd = 0x48
             self.security_page_erase_cmd = 0x44
+        else:
+            # ISSI
+            self.security_page_bit_offset = 4
+            self.security_page_write_cmd = 0x62
+            self.security_page_read_cmd = 0x68
+            self.security_page_erase_cmd = 0x64
 
         self.meta = TinyMeta(self)
+        if (self.meta.root is None or not len(self.meta.root)) \
+            and adesto_flash and not use_AT25S_B_variant:
+            print("Can't find meta--attempting Adesto B patch")
+            use_AT25S_B_variant = True
+            self.security_page_bit_offset = 4
+            self.meta = TinyMeta(self)
 
     def is_bootloader_active(self):
         self.wake()
